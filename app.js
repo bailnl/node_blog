@@ -15,6 +15,11 @@ var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 // flash
 var flash = require('connect-flash');
+// 文件处理
+var multer  = require('multer');
+
+
+
 
 
 
@@ -39,7 +44,7 @@ app.use(cookieParser('metro'));
 
 // cookie 信息存储到 mongodb 中
 app.use(session({
-    secret: settings.cookieSecret,  // 用于篡改cookie
+    secret: settings.cookieSecret,  // 用于防篡改cookie
     key: settings.db,  // cookie 名字
     cookie: {maxAge: 1000 * 60 * 60 * 24 * 30}, //30天
     store: new MongoStore({
@@ -54,8 +59,20 @@ app.use(session({
 app.use(flash());
 // 静态资源
 app.use(express.static(path.join(__dirname, 'public')));
+
+// 处理文件
+app.use(multer({
+    // 上传目录
+    dest: './public/images',
+    // 修改上传的文件名
+    rename: function (fieldname, filename) {
+        return filename;
+    }
+}));
+
 // 路由控制
 routes(app);
+
 
 
 

@@ -1,4 +1,5 @@
 var mongodb = require('./db');
+var markdown = require('markdown').markdown;
 function Post(name, title, post) {
     this.name = name;
     this.title = title;
@@ -12,8 +13,7 @@ Post.prototype.save = function (callback) {
         year: date.getFullYear(),
         month: date.getFullYear() + '-' + (date.getMonth() + 1),
         day: date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate(),
-        minute: date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' +
-            date.getHours() + ':' + date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+        minute: date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes())
     };
     // 要存入数据库的文档
     var post = {
@@ -45,7 +45,8 @@ Post.prototype.save = function (callback) {
         });
     });
 };
-Post.get = function (name, callback) {
+// 获取所有的文章
+Post.getAll = function (name, callback) {
     mongodb.open(function (err, db) {
         if (err) {
             callback(err);
@@ -69,8 +70,48 @@ Post.get = function (name, callback) {
                 if (err) {
                     callback(err);
                 }
+                //解析 markdown 为 html
+                docs.forEach(function (doc) {
+                    doc.post = markdown.toHTML(doc.post);
+                });
+
                 callback(null, docs); // 成功！ 以数组形式返回查询的结果
             });
         });
     });
 };
+
+// 获取一篇文章
+Post.getOne = function (name,day,title,callback) {
+   // 打开数据库
+    mongodb.open(function (err, db) {
+        if (err) {
+            mongodb.close();
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+
+            // 根据  用户名 发表日期 及文章名进行查询
+            collection.findOne({
+                // 查找条件
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, function (err, doc) {
+
+                mongodb.close();  // 始终关闭 链接
+                if (err) {
+                    return callback(err);
+                }
+                // 解析为 html
+                doc.post = markdown.toHTML(doc.post);
+                callback(null, doc); // 返回查询的一篇文章
+            });
+        });
+    });
+};
+

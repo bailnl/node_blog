@@ -11,7 +11,7 @@ var Post = require('../models/post');
 module.exports = function (app) {
     // 主页
     app.get('/', function (req, res) {
-        Post.get(null, function (err, posts) {
+        Post.getAll(null, function (err, posts) {
             if (err) {
                 posts = [];
             }
@@ -93,12 +93,15 @@ module.exports = function (app) {
         // 生成密码的 md5 值
         var md5 = crypto.createHash('md5');
         var password = md5.update(req.body.password).digest('hex');
+        // console.log('password', password);
+
         User.get(req.body.name, function (err, user) {
             // 用户不存在
-            if (err) {
+            if (err || user == null) {
                 req.flash('error', '用户不存在！');
                 return res.redirect('/login');
             }
+
             // 密码错误
             if (user.password != password) {
                 req.flash('error', '密码错误！');
@@ -137,6 +140,64 @@ module.exports = function (app) {
             }
             req.flash('success', '发布成功！');
             res.redirect('/'); // 发表成功之后跳转到首页
+        });
+    });
+
+    // 上传
+    app.get('/upload',checkLogin);
+    app.get('/upload', function (req, res) {
+        res.render('upload', {
+            title: '文件上传',
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
+    });
+    app.post('/upload', function (req, res) {
+        req.flash('success', "文件上传成功！");
+        res.redirect('/upload');
+    });
+
+
+    // 用户页面
+    app.get('/u/:name', function (req, res) {
+        User.get(req.params.name, function (err, user) {
+            if (!user) {
+                req.flash('err', '用户不存在！');
+                return res.redirect('/'); // 用户不存在则跳转到主页
+            }
+            // 返回该用户所有的文章
+            Post.getAll(req.params.name, function (err, posts) {
+                if (err) {
+                    req.flash('error', err);
+                    return res.redirect('/');
+                }
+                res.render('user', {
+                    title: user.name,
+                    posts: posts,
+                    user: req.session.user,
+                    success: req.flash("success").toString(),
+                    error: req.flash("error").toString()
+                })
+            });
+        });
+    });
+
+
+    // 文章页面
+    app.get('/u/:name/:day/:title', function (req,res) {
+        Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
+            if (err) {
+                req.flash('error', err);
+                return res.redirect('/');
+            }
+            res.render('article',{
+                title:req.params.title,
+                post:post,
+                user: req.session.user,
+                success:req.flash('success').toString(),
+                error:req.flash('error').toString()
+            });
         });
     });
 
