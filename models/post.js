@@ -147,8 +147,9 @@ Post.getOne = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
-                mongodb.close();  // 始终关闭 链接
+
                 if (err) {
+                    mongodb.close();  // 始终关闭 链接
                     return callback(err);
                 }
                 if (doc) {
@@ -161,6 +162,7 @@ Post.getOne = function (name, day, title, callback) {
                             "pv": 1
                         }
                     }, function (err) {
+                        console.log(err)
                         mongodb.close();
                         if (err) {
                             return callback(err);
@@ -170,7 +172,7 @@ Post.getOne = function (name, day, title, callback) {
                     doc.post = markdown.toHTML(doc.post);
                     // 评论转换
                     doc.comments.forEach(function (comment) {
-                        comment.content = markdown.toHTML(comment.content);
+                        comment.comment = markdown.toHTML(comment.comment);
                     });
                 }
                 callback(null, doc); // 返回查询的一篇文章
