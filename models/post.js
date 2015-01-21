@@ -147,7 +147,7 @@ Post.getOne = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
-
+                // 本来是这里的
                 if (err) {
                     mongodb.close();  // 始终关闭 链接
                     return callback(err);
@@ -162,7 +162,6 @@ Post.getOne = function (name, day, title, callback) {
                             "pv": 1
                         }
                     }, function (err) {
-                        console.log(err)
                         mongodb.close();
                         if (err) {
                             return callback(err);
@@ -353,6 +352,42 @@ Post.getTag = function (tag, callback) {
                 }
                 callback(null, docs);
             })
+        });
+    });
+};
+
+// 返回通过标题关键字查询的所有文章
+Post.search = function (keyword,callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            mongodb.close();
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            // 生成正则
+            var pattern = new RegExp(keyword, 'i');
+            collection.find({
+                // 使用正则匹配 title
+                "title": pattern
+            }, {
+                // 取三个 fields
+                "name": 1,
+                "time": 1,
+                "title": 1
+            }).sort({
+                time: -1
+            }).toArray(function (err, docs) {
+                mongodb.close();
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+
         });
     });
 };

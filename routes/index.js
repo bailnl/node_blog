@@ -346,12 +346,44 @@ module.exports = function (app) {
         });
     });
 
+    // 搜索
+    app.get('/search', function (req, res) {
+        Post.search(req.query.keyword, function (err, posts) {
+            if (err) {
+                req.flash('error', err);
+                return res.redirect('/');
+            }
+            res.render('search',{
+                title:"SEARCH:" + req.query.keyword,
+                posts:posts,
+                user:req.session.user,
+                success: req.flash('success').toString(),
+                error: req.flash('error').toString()
+            })
+        });
+    });
+
+    // 友情链接
+    app.get('/links', function (req, res) {
+        res.render('links', {
+            title: '友情链接',
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
+    });
+
     // 退出
     app.get('/logout', checkLogin);
     app.get('/logout', function (req, res) {
         req.session.user = null;
         req.flash('success', '登出成功！');
         res.redirect('/');
+    });
+
+
+    app.use(function (req, res) {
+        res.render("404");
     });
 
 
