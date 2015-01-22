@@ -140,7 +140,7 @@ module.exports = function (app) {
         // 获取 tag
         var tags = [req.body.tag1, req.body.tag2, req.body.tag3];
         // 新建一个 post
-        var post = new Post(currentUser.name, req.body.title, tags, req.body.post);
+        var post = new Post(currentUser.name,currentUser.head, req.body.title, tags, req.body.post);
         // 将 post 存入 db中
         post.save(function (err) {
             if (err) {
@@ -177,7 +177,7 @@ module.exports = function (app) {
                 return res.redirect('/'); // 用户不存在则跳转到主页
             }
             // 返回该用户所有的文章
-            Post.getTen(req.params.name, function (err, posts,total) {
+            Post.getTen(req.params.name, page, function (err, posts, total) {
                 if (err) {
                     req.flash('error', err);
                     return res.redirect('/');
@@ -185,12 +185,11 @@ module.exports = function (app) {
                 res.render('user', {
                     title: user.name,
                     posts: posts,
-                    page:page,
+                    page: page,
                     isFirstPage: (page - 1) == 0,
                     // (page - 1) * 10  之前的数量
                     // posts.length 当前的数量
                     isLastPage: ((page - 1) * 10 + posts.length) == total,
-
                     user: req.session.user,
                     success: req.flash("success").toString(),
                     error: req.flash("error").toString()
@@ -221,8 +220,17 @@ module.exports = function (app) {
         var date = new Date();
         var time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +
             date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+
+        var md5 = crypto.createHash('md5');
+        var email_MD5 = md5.update(req.body.email.toLowerCase()).digest('hex');
+        var head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
+
+        console.log('email_MD5', email_MD5);
+        console.log('head', head);
+
         var comment = {
             name: req.body.name,
+            head: head,
             email: req.body.email,
             website: req.body.website,
             time: time,

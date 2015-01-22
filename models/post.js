@@ -1,7 +1,8 @@
 var mongodb = require('./db');
 var markdown = require('markdown').markdown;
-function Post(name, title, tags, post) {
+function Post(name, head,title, tags, post) {
     this.name = name;
+    this.head = head;
     this.title = title;
     this.tags = tags;
     this.post = post;
@@ -19,6 +20,7 @@ Post.prototype.save = function (callback) {
     // 要存入数据库的文档
     var post = {
         name: this.name,
+        head: this.head,
         time: time,
         tags: this.tags,
         title: this.title,
@@ -102,22 +104,24 @@ Post.getTen = function (name, page, callback) {
             if (name) {
                 query.name = name;
             }
-            // 使用 count返回特定查询的文档数 total
+            // 使用 count 返回特定查询的文档数 total
             collection.count(query, function (err, total) {
                 // 根据 query对象查，并跳过前(page-1)*10的结果，返回之后的10个结果
+                console.log(total);
                 collection.find(query, {
+                    // skip 跳过指定
                     skip: (page - 1) * 10,
                     limit: 10
                 }).sort({
                     time: -1
                 }).toArray(function (err, docs) {
-                    mongodb.close();   // 始终关闭连接
+                   mongodb.close();   // 始终关闭连接
                     if (err) {
                         callback(err);
                     }
                     //解析 markdown 为 html
                     docs.forEach(function (doc) {
-                        doc.post = markdown.toHTML(doc.post);
+                         doc.post = markdown.toHTML(doc.post);
                     });
                     callback(null, docs, total); // 成功！ 以数组形式返回查询的结果
                 });
