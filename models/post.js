@@ -107,7 +107,7 @@ Post.getTen = function (name, page, callback) {
             // 使用 count 返回特定查询的文档数 total
             collection.count(query, function (err, total) {
                 // 根据 query对象查，并跳过前(page-1)*10的结果，返回之后的10个结果
-                console.log(total);
+                // console.log(total);
                 collection.find(query, {
                     // skip 跳过指定
                     skip: (page - 1) * 10,
@@ -317,11 +317,11 @@ Post.getTags = function (callback) {
                 return callback(err);
             }
 
-            console.log(collection);
+            // console.log(collection);
 
             // distinct 用来找出给定键的所有不同值
             collection.distinct('tags', function (err, docs) {
-                console.log(docs);
+                // console.log(docs);
                 mongodb.close();
                 if (err) {
                     return callback(err);

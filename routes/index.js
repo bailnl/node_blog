@@ -203,7 +203,7 @@ module.exports = function (app) {
     app.get('/u/:name/:day/:title', function (req,res) {
         Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
             if (err) {
-                console.log(err);
+                // console.log(err);
                 req.flash('error', err);
                 return res.redirect('/');
             }
@@ -225,8 +225,8 @@ module.exports = function (app) {
         var email_MD5 = md5.update(req.body.email.toLowerCase()).digest('hex');
         var head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
 
-        console.log('email_MD5', email_MD5);
-        console.log('head', head);
+        // console.log('email_MD5', email_MD5);
+        // console.log('head', head);
 
         var comment = {
             name: req.body.name,
